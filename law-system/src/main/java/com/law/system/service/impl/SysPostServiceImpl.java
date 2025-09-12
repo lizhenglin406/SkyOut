@@ -194,15 +194,26 @@ public class SysPostServiceImpl implements ISysPostService
     @Override
     public Set<String> selectMenuPermsByUserId(Long userId)
     {
+        System.out.println("=== 岗位权限获取调试 ===");
+        System.out.println("用户ID: " + userId);
+        
         List<String> perms = postMenuMapper.selectMenuPermsByUserId(userId);
+        System.out.println("从数据库获取的权限数量: " + perms.size());
+        
         Set<String> permsSet = new HashSet<>();
         for (String perm : perms)
         {
             if (StringUtils.isNotEmpty(perm))
             {
+                System.out.println("处理权限字符串: " + perm);
                 permsSet.addAll(Arrays.asList(perm.trim().split(",")));
             }
         }
+        
+        System.out.println("最终岗位权限数量: " + permsSet.size());
+        System.out.println("岗位权限列表: " + permsSet);
+        System.out.println("=== 岗位权限获取调试结束 ===");
+        
         return permsSet;
     }
 

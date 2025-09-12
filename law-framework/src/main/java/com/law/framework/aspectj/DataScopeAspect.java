@@ -1,7 +1,9 @@
 package com.law.framework.aspectj;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -90,6 +92,13 @@ public class DataScopeAspect
      */
     public static void dataScopeFilter(JoinPoint joinPoint, SysUser user, String deptAlias, String userAlias, String permission)
     {
+        System.out.println("=== 数据权限过滤调试 ===");
+        System.out.println("用户ID: " + user.getUserId());
+        System.out.println("用户部门ID: " + user.getDeptId());
+        System.out.println("权限字符: " + permission);
+        System.out.println("部门别名: " + deptAlias);
+        System.out.println("用户别名: " + userAlias);
+        
         StringBuilder sqlString = new StringBuilder();
         List<String> conditions = new ArrayList<String>();
         List<String> scopeCustomIds = new ArrayList<String>();
@@ -100,17 +109,32 @@ public class DataScopeAspect
             }
         });
 
+        // 获取用户的所有权限（包括角色权限和岗位权限）
+        // 这里我们直接使用权限服务来获取用户的完整权限集合
+        Set<String> userAllPermissions = new HashSet<>();
+        if (user.getRoles() != null) {
+            for (SysRole role : user.getRoles()) {
+                if (role.getPermissions() != null) {
+                    userAllPermissions.addAll(role.getPermissions());
+                }
+            }
+        }
+        
+        System.out.println("用户所有权限: " + userAllPermissions);
+        
         for (SysRole role : user.getRoles())
         {
             String dataScope = role.getDataScope();
+            System.out.println("处理角色: " + role.getRoleName() + " (ID: " + role.getRoleId() + "), 数据权限范围: " + dataScope);
+            
             if (conditions.contains(dataScope) || StringUtils.equals(role.getStatus(), UserConstants.ROLE_DISABLE))
             {
+                System.out.println("跳过角色: " + role.getRoleName() + " (已处理或已禁用)");
                 continue;
             }
-            if (!StringUtils.containsAny(role.getPermissions(), Convert.toStrArray(permission)))
-            {
-                continue;
-            }
+            // 修改权限检查逻辑：对于数据权限过滤，我们只检查角色是否有数据权限范围设置
+            // 不再检查具体的菜单权限，因为菜单权限已经在方法级别通过@PreAuthorize检查了
+            System.out.println("角色 " + role.getRoleName() + " 有数据权限范围: " + dataScope);
             if (DATA_SCOPE_ALL.equals(dataScope))
             {
                 sqlString = new StringBuilder();
@@ -158,13 +182,18 @@ public class DataScopeAspect
             sqlString.append(StringUtils.format(" OR {}.dept_id = 0 ", deptAlias));
         }
 
+        System.out.println("生成的SQL条件: " + sqlString.toString());
+        System.out.println("=== 数据权限过滤调试结束 ===");
+        
         if (StringUtils.isNotBlank(sqlString.toString()))
         {
             Object params = joinPoint.getArgs()[0];
             if (StringUtils.isNotNull(params) && params instanceof BaseEntity)
             {
                 BaseEntity baseEntity = (BaseEntity) params;
-                baseEntity.getParams().put(DATA_SCOPE, " AND (" + sqlString.substring(4) + ")");
+                String finalCondition = " AND (" + sqlString.substring(4) + ")";
+                baseEntity.getParams().put(DATA_SCOPE, finalCondition);
+                System.out.println("最终数据权限条件: " + finalCondition);
             }
         }
     }

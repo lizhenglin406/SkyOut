@@ -68,6 +68,12 @@ const user = {
             avatar = (isEmpty(avatar)) ? defAva : process.env.VUE_APP_BASE_API + avatar
           }
           if (res.roles && res.roles.length > 0) { // 验证返回的roles是否是一个非空数组
+            console.log('=== 用户登录权限调试 ===')
+            console.log('用户角色:', res.roles)
+            console.log('用户权限数量:', res.permissions ? res.permissions.length : 0)
+            console.log('用户权限列表:', res.permissions)
+            console.log('=== 用户登录权限调试结束 ===')
+            
             commit('SET_ROLES', res.roles)
             commit('SET_PERMISSIONS', res.permissions)
           } else {

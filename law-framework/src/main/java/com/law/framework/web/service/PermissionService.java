@@ -21,17 +21,30 @@ public class PermissionService
      */
     public boolean hasPermi(String permission)
     {
+        System.out.println("=== 权限验证调试 ===");
+        System.out.println("验证权限: " + permission);
+        
         if (StringUtils.isEmpty(permission))
         {
+            System.out.println("权限字符串为空，返回false");
             return false;
         }
         LoginUser loginUser = SecurityUtils.getLoginUser();
         if (StringUtils.isNull(loginUser) || CollectionUtils.isEmpty(loginUser.getPermissions()))
         {
+            System.out.println("用户未登录或权限为空，返回false");
             return false;
         }
+        
+        System.out.println("用户权限数量: " + loginUser.getPermissions().size());
+        System.out.println("用户权限列表: " + loginUser.getPermissions());
+        
         PermissionContextHolder.setContext(permission);
-        return hasPermissions(loginUser.getPermissions(), permission);
+        boolean result = hasPermissions(loginUser.getPermissions(), permission);
+        System.out.println("权限验证结果: " + result);
+        System.out.println("=== 权限验证调试结束 ===");
+        
+        return result;
     }
 
     /**
