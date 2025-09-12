@@ -3,7 +3,7 @@ package com.law.web.controller.system;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.law.common.config.RuoYiConfig;
+import com.law.common.config.LawOfficeConfig;
 import com.law.common.utils.StringUtils;
 
 /**
@@ -16,7 +16,7 @@ public class SysIndexController
 {
     /** 系统基础配置 */
     @Autowired
-    private RuoYiConfig lawConfig;
+    private LawOfficeConfig lawConfig;
 
     /**
      * 访问首页，提示语

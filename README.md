@@ -6,7 +6,7 @@
 
 ## 平台简介
 
-LawConfiguration是一套专门为法律行业设计的配置管理系统，基于若依框架进行定制开发，为法律机构提供高效的管理解决方案。
+LawConfiguration是一套专门为法律行业设计的配置管理系统，基于律师事务所框架进行定制开发，为法律机构提供高效的管理解决方案。
 
 * 前端采用Vue、Element UI。
 * 后端采用Spring Boot、Spring Security、Redis & Jwt。

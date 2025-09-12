@@ -6,10 +6,10 @@
 
 <script>
 export default {
-  name: 'RuoYiGit',
+  name: 'LawOfficeGit',
   data() {
     return {
-      url: 'https://gitee.com/y_project/RuoYi-Vue'
+      url: 'https://gitee.com/law-office/law-office-vue'
     }
   },
   methods: {

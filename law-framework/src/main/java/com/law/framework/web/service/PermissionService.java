@@ -10,11 +10,6 @@ import com.law.common.utils.SecurityUtils;
 import com.law.common.utils.StringUtils;
 import com.law.framework.security.context.PermissionContextHolder;
 
-/**
- * RuoYi首创 自定义权限实现，ss取自SpringSecurity首字母
- * 
- * @author law
- */
 @Service("ss")
 public class PermissionService
 {

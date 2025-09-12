@@ -6,10 +6,10 @@
 
 <script>
 export default {
-  name: 'RuoYiDoc',
+  name: 'LawOfficeDoc',
   data() {
     return {
-      url: 'http://doc.ruoyi.vip/ruoyi-vue'
+      url: 'http://doc.law-office.vip/law-office-vue'
     }
   },
   methods: {

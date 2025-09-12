@@ -2,10 +2,10 @@
 
 ```bash
 # 克隆项目
-git clone https://gitee.com/y_project/RuoYi-Vue
+git clone https://gitee.com/law-office/law-office-vue
 
 # 进入项目目录
-cd ruoyi-ui
+cd law-office-ui
 
 # 安装依赖
 npm install

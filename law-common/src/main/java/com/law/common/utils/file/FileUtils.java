@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import com.law.common.config.RuoYiConfig;
+import com.law.common.config.LawOfficeConfig;
 import com.law.common.constant.Constants;
 import com.law.common.utils.DateUtils;
 import com.law.common.utils.StringUtils;
@@ -74,7 +74,7 @@ public class FileUtils
      */
     public static String writeImportBytes(byte[] data) throws IOException
     {
-        return writeBytes(data, RuoYiConfig.getImportPath());
+        return writeBytes(data, LawOfficeConfig.getImportPath());
     }
 
     /**

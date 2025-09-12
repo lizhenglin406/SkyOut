@@ -1,8 +1,8 @@
 {
-  "name": "ruoyi",
+  "name": "law-office",
   "version": "3.9.0",
-  "description": "若依管理系统",
-  "author": "若依",
+  "description": "律师事务所管理系统",
+  "author": "律师事务所",
   "license": "MIT",
   "scripts": {
     "dev": "vue-cli-service serve",
@@ -21,7 +21,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/y_project/RuoYi-Vue.git"
+    "url": "https://gitee.com/law-office/law-office-vue.git"
   },
   "dependencies": {
     "@riophae/vue-treeselect": "0.4.0",
