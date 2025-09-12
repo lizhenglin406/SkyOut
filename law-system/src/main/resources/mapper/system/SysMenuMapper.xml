@@ -58,10 +58,22 @@
 	<select id="selectMenuListByUserId" parameterType="SysMenu" resultMap="SysMenuResult">
 		select distinct m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.`query`, m.route_name, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.create_time
 		from sys_menu m
-		left join sys_role_menu rm on m.menu_id = rm.menu_id
-		left join sys_user_role ur on rm.role_id = ur.role_id
-		left join sys_role ro on ur.role_id = ro.role_id
-		where ur.user_id = #{params.userId}
+		where (
+			-- 角色权限
+			exists (
+				select 1 from sys_role_menu rm 
+				left join sys_user_role ur on rm.role_id = ur.role_id
+				left join sys_role ro on ur.role_id = ro.role_id
+				where rm.menu_id = m.menu_id and ur.user_id = #{params.userId} and ro.status = 0
+			)
+			or
+			-- 岗位权限
+			exists (
+				select 1 from sys_post_menu pm
+				left join sys_user_post up on pm.post_id = up.post_id
+				where pm.menu_id = m.menu_id and up.user_id = #{params.userId}
+			)
+		)
 		<if test="menuName != null and menuName != ''">
             AND m.menu_name like concat('%', #{menuName}, '%')
 		</if>
@@ -77,11 +89,23 @@
     <select id="selectMenuTreeByUserId" parameterType="Long" resultMap="SysMenuResult">
 		select distinct m.menu_id, m.parent_id, m.menu_name, m.path, m.component, m.`query`, m.route_name, m.visible, m.status, ifnull(m.perms,'') as perms, m.is_frame, m.is_cache, m.menu_type, m.icon, m.order_num, m.create_time
 		from sys_menu m
-			 left join sys_role_menu rm on m.menu_id = rm.menu_id
-			 left join sys_user_role ur on rm.role_id = ur.role_id
-			 left join sys_role ro on ur.role_id = ro.role_id
-			 left join sys_user u on ur.user_id = u.user_id
-		where u.user_id = #{userId} and m.menu_type in ('M', 'C') and m.status = 0  AND ro.status = 0
+		where m.menu_type in ('M', 'C') and m.status = 0
+		and (
+			-- 角色权限
+			exists (
+				select 1 from sys_role_menu rm 
+				left join sys_user_role ur on rm.role_id = ur.role_id
+				left join sys_role ro on ur.role_id = ro.role_id
+				where rm.menu_id = m.menu_id and ur.user_id = #{userId} and ro.status = 0
+			)
+			or
+			-- 岗位权限
+			exists (
+				select 1 from sys_post_menu pm
+				left join sys_user_post up on pm.post_id = up.post_id
+				where pm.menu_id = m.menu_id and up.user_id = #{userId}
+			)
+		)
 		order by m.parent_id, m.order_num
 	</select>
 	
@@ -92,6 +116,17 @@
         where rm.role_id = #{roleId}
             <if test="menuCheckStrictly">
               and m.menu_id not in (select m.parent_id from sys_menu m inner join sys_role_menu rm on m.menu_id = rm.menu_id and rm.role_id = #{roleId})
+            </if>
+		order by m.parent_id, m.order_num
+	</select>
+
+	<select id="selectMenuListByPostId" resultType="Long">
+		select m.menu_id
+		from sys_menu m
+            left join sys_post_menu pm on m.menu_id = pm.menu_id
+        where pm.post_id = #{postId}
+            <if test="menuCheckStrictly">
+              and m.menu_id not in (select m.parent_id from sys_menu m inner join sys_post_menu pm on m.menu_id = pm.menu_id and pm.post_id = #{postId})
             </if>
 		order by m.parent_id, m.order_num
 	</select>
@@ -106,10 +141,23 @@
 	<select id="selectMenuPermsByUserId" parameterType="Long" resultType="String">
 		select distinct m.perms
 		from sys_menu m
-			 left join sys_role_menu rm on m.menu_id = rm.menu_id
-			 left join sys_user_role ur on rm.role_id = ur.role_id
-			 left join sys_role r on r.role_id = ur.role_id
-		where m.status = '0' and r.status = '0' and ur.user_id = #{userId}
+		where m.status = '0' and m.perms is not null and m.perms != ''
+		and (
+			-- 角色权限
+			exists (
+				select 1 from sys_role_menu rm 
+				left join sys_user_role ur on rm.role_id = ur.role_id
+				left join sys_role r on ur.role_id = r.role_id
+				where rm.menu_id = m.menu_id and ur.user_id = #{userId} and r.status = '0'
+			)
+			or
+			-- 岗位权限
+			exists (
+				select 1 from sys_post_menu pm
+				left join sys_user_post up on pm.post_id = up.post_id
+				where pm.menu_id = m.menu_id and up.user_id = #{userId}
+			)
+		)
 	</select>
 	
 	<select id="selectMenuPermsByRoleId" parameterType="Long" resultType="String">

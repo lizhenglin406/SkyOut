@@ -1,13 +1,19 @@
 package com.law.system.service.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.law.common.constant.UserConstants;
 import com.law.common.exception.ServiceException;
 import com.law.common.utils.StringUtils;
 import com.law.system.domain.SysPost;
+import com.law.system.domain.SysPostMenu;
 import com.law.system.mapper.SysPostMapper;
+import com.law.system.mapper.SysPostMenuMapper;
 import com.law.system.mapper.SysUserPostMapper;
 import com.law.system.service.ISysPostService;
 
@@ -24,6 +30,9 @@ public class SysPostServiceImpl implements ISysPostService
 
     @Autowired
     private SysUserPostMapper userPostMapper;
+
+    @Autowired
+    private SysPostMenuMapper postMenuMapper;
 
     /**
      * 查询岗位信息集合
@@ -174,5 +183,92 @@ public class SysPostServiceImpl implements ISysPostService
     public int updatePost(SysPost post)
     {
         return postMapper.updatePost(post);
+    }
+
+    /**
+     * 根据用户ID查询岗位权限
+     * 
+     * @param userId 用户ID
+     * @return 权限列表
+     */
+    @Override
+    public Set<String> selectMenuPermsByUserId(Long userId)
+    {
+        List<String> perms = postMenuMapper.selectMenuPermsByUserId(userId);
+        Set<String> permsSet = new HashSet<>();
+        for (String perm : perms)
+        {
+            if (StringUtils.isNotEmpty(perm))
+            {
+                permsSet.addAll(Arrays.asList(perm.trim().split(",")));
+            }
+        }
+        return permsSet;
+    }
+
+    /**
+     * 根据岗位ID查询菜单权限
+     * 
+     * @param postId 岗位ID
+     * @return 权限列表
+     */
+    @Override
+    public Set<String> selectMenuPermsByPostId(Long postId)
+    {
+        List<String> perms = postMenuMapper.selectMenuPermsByPostId(postId);
+        Set<String> permsSet = new HashSet<>();
+        for (String perm : perms)
+        {
+            if (StringUtils.isNotEmpty(perm))
+            {
+                permsSet.addAll(Arrays.asList(perm.trim().split(",")));
+            }
+        }
+        return permsSet;
+    }
+
+    /**
+     * 根据岗位ID查询菜单树信息
+     * 
+     * @param postId 岗位ID
+     * @return 选中菜单列表
+     */
+    @Override
+    public List<Long> selectMenuListByPostId(Long postId)
+    {
+        SysPost post = postMapper.selectPostById(postId);
+        return postMenuMapper.selectMenuListByPostId(postId, post.isMenuCheckStrictly());
+    }
+
+    /**
+     * 分配岗位菜单权限
+     * 
+     * @param postId 岗位ID
+     * @param menuIds 菜单ID列表
+     * @return 结果
+     */
+    @Override
+    public int insertPostMenu(Long postId, Long[] menuIds)
+    {
+        int rows = 1;
+        // 删除岗位与菜单关联
+        postMenuMapper.deletePostMenuByPostId(postId);
+        if (StringUtils.isNotNull(menuIds) && menuIds.length > 0)
+        {
+            // 新增岗位与菜单关联
+            List<SysPostMenu> list = new ArrayList<SysPostMenu>();
+            for (Long menuId : menuIds)
+            {
+                SysPostMenu pm = new SysPostMenu();
+                pm.setPostId(postId);
+                pm.setMenuId(menuId);
+                list.add(pm);
+            }
+            if (list.size() > 0)
+            {
+                rows = postMenuMapper.batchPostMenu(list);
+            }
+        }
+        return rows;
     }
 }

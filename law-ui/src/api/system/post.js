@@ -42,3 +42,20 @@ export function delPost(postId) {
     method: 'delete'
   })
 }
+
+// 查询岗位菜单权限
+export function getPostMenu(postId) {
+  return request({
+    url: '/system/post/authMenu/' + postId,
+    method: 'get'
+  })
+}
+
+// 保存岗位菜单权限
+export function updatePostMenu(data) {
+  return request({
+    url: '/system/post/authMenu',
+    method: 'put',
+    data: data
+  })
+}

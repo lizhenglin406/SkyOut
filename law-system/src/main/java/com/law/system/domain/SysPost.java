@@ -38,8 +38,14 @@ public class SysPost extends BaseEntity
     @Excel(name = "状态", readConverterExp = "0=正常,1=停用")
     private String status;
 
+    /** 菜单树选择项是否关联显示（ 0：父子不互相关联显示 1：父子互相关联显示） */
+    private boolean menuCheckStrictly;
+
     /** 用户是否存在此岗位标识 默认不存在 */
     private boolean flag = false;
+
+    /** 菜单组 */
+    private Long[] menuIds;
 
     public Long getPostId()
     {
@@ -96,6 +102,16 @@ public class SysPost extends BaseEntity
         this.status = status;
     }
 
+    public boolean isMenuCheckStrictly()
+    {
+        return menuCheckStrictly;
+    }
+
+    public void setMenuCheckStrictly(boolean menuCheckStrictly)
+    {
+        this.menuCheckStrictly = menuCheckStrictly;
+    }
+
     public boolean isFlag()
     {
         return flag;
@@ -104,6 +120,16 @@ public class SysPost extends BaseEntity
     public void setFlag(boolean flag)
     {
         this.flag = flag;
+    }
+
+    public Long[] getMenuIds()
+    {
+        return menuIds;
+    }
+
+    public void setMenuIds(Long[] menuIds)
+    {
+        this.menuIds = menuIds;
     }
     
     @Override

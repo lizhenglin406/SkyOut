@@ -107,6 +107,13 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-key"
+            @click="handleAuthMenu(scope.row)"
+            v-hasPermi="['system:post:edit']"
+          >权限</el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['system:post:remove']"
@@ -153,11 +160,52 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 分配岗位菜单权限对话框 -->
+    <el-dialog :title="title" :visible.sync="openMenu" width="600px" append-to-body>
+      <el-form :model="form" label-width="80px">
+        <el-form-item label="岗位名称">
+          <el-input v-model="form.postName" :disabled="true" />
+        </el-form-item>
+        <el-form-item label="权限字符">
+          <el-input v-model="form.postCode" :disabled="true" />
+        </el-form-item>
+        <el-form-item label="菜单权限">
+          <el-checkbox
+            v-model="menuExpand"
+            @change="handleCheckedTreeExpand($event, 'menu')"
+          >展开/折叠</el-checkbox>
+          <el-checkbox
+            v-model="menuNodeAll"
+            @change="handleCheckedTreeNodeAll($event, 'menu')"
+          >全选/全不选</el-checkbox>
+          <el-checkbox
+            v-model="menuCheckStrictly"
+            @change="handleCheckedTreeConnect($event, 'menu')"
+          >父子联动</el-checkbox>
+          <el-tree
+            class="tree-border"
+            :data="menuOptions"
+            show-checkbox
+            ref="menu"
+            node-key="id"
+            :check-strictly="!menuCheckStrictly"
+            empty-text="加载中，请稍候"
+            :props="{ label: 'label', children: 'children' }"
+          ></el-tree>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitAuthMenu">确 定</el-button>
+        <el-button @click="cancelAuthMenu">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { listPost, getPost, delPost, addPost, updatePost } from "@/api/system/post"
+import { listPost, getPost, delPost, addPost, updatePost, getPostMenu, updatePostMenu } from "@/api/system/post"
+import { treeselect as menuTreeselect } from "@/api/system/menu"
 
 export default {
   name: "Post",
@@ -182,6 +230,14 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 是否显示菜单权限弹出层
+      openMenu: false,
+      // 菜单列表
+      menuOptions: [],
+      // 菜单权限
+      menuExpand: false,
+      menuNodeAll: false,
+      menuCheckStrictly: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -303,7 +359,160 @@ export default {
       this.download('system/post/export', {
         ...this.queryParams
       }, `post_${new Date().getTime()}.xlsx`)
+    },
+    /** 分配菜单权限操作 */
+    handleAuthMenu(row) {
+      this.reset()
+      const postId = row.postId
+      this.form = Object.assign({}, row)
+      this.openMenu = true
+      this.title = "分配菜单权限"
+      console.log('开始分配菜单权限，岗位ID:', postId)
+      
+      // 先获取菜单树结构
+      this.getMenuTreeselect().then(() => {
+        console.log('菜单树结构获取完成，菜单选项数据长度:', this.menuOptions ? this.menuOptions.length : 0)
+        
+        // 等待对话框完全渲染
+        this.$nextTick(() => {
+          // 先清空菜单树的选中状态
+          if (this.$refs.menu) {
+            this.$refs.menu.setCheckedKeys([])
+            console.log('对话框打开时清空菜单树选中状态')
+          }
+          
+          setTimeout(() => {
+            // 获取岗位权限数据
+            this.getMenuTree(postId)
+          }, 200)
+        })
+      })
+    },
+    /** 查询菜单树结构 */
+    getMenuTreeselect() {
+      return menuTreeselect().then(response => {
+        console.log('菜单树结构响应:', response.data)
+        console.log('菜单树结构类型:', typeof response.data)
+        console.log('菜单树结构长度:', response.data ? response.data.length : 0)
+        if (response.data && response.data.length > 0) {
+          console.log('第一个菜单项:', response.data[0])
+        }
+        this.menuOptions = response.data
+      }).catch(error => {
+        console.error('获取菜单树结构失败:', error)
+      })
+    },
+    /** 查询岗位菜单权限 */
+    getMenuTree(postId) {
+      return getPostMenu(postId).then(response => {
+        console.log('岗位菜单权限响应:', response)
+        console.log('checkedKeys类型:', typeof response.checkedKeys)
+        console.log('checkedKeys长度:', response.checkedKeys ? response.checkedKeys.length : 0)
+        
+        // 确保DOM元素已经准备好
+        this.$nextTick(() => {
+          console.log('菜单树组件引用:', this.$refs.menu)
+          console.log('菜单选项数据长度:', this.menuOptions ? this.menuOptions.length : 0)
+          
+          if (this.$refs.menu) {
+            console.log('菜单树组件方法:', Object.getOwnPropertyNames(this.$refs.menu))
+            
+            // 等待菜单树完全渲染
+            setTimeout(() => {
+              let checkedKeys = response.checkedKeys || []
+              console.log('准备设置选中的菜单节点:', checkedKeys)
+              
+              // 先清空所有选中状态
+              this.$refs.menu.setCheckedKeys([])
+              
+              // 如果有选中的节点，则设置选中状态
+              if (checkedKeys.length > 0) {
+                this.$refs.menu.setCheckedKeys(checkedKeys)
+                console.log('已设置选中的菜单节点:', checkedKeys)
+              } else {
+                console.log('没有选中的菜单节点，保持清空状态')
+              }
+              
+              // 验证设置是否成功
+              setTimeout(() => {
+                const actualCheckedKeys = this.$refs.menu.getCheckedKeys()
+                console.log('验证选中的节点:', actualCheckedKeys)
+                console.log('期望的节点数量:', checkedKeys.length)
+                console.log('实际的节点数量:', actualCheckedKeys.length)
+              }, 200)
+            }, 300)
+          } else {
+            console.error('菜单树组件未找到')
+          }
+        })
+        return response
+      }).catch(error => {
+        console.error('获取岗位菜单权限失败:', error)
+        throw error
+      })
+    },
+    // 树权限（展开/折叠）
+    handleCheckedTreeExpand(value, type) {
+      if (type == 'menu') {
+        let treeList = this.menuOptions
+        for (let i = 0; i < treeList.length; i++) {
+          this.$refs.menu.store.nodesMap[treeList[i].id].expanded = value
+        }
+      }
+    },
+    // 树权限（全选/全不选）
+    handleCheckedTreeNodeAll(value, type) {
+      if (type == 'menu') {
+        this.$refs.menu.setCheckedNodes(value ? this.menuOptions : [])
+      }
+    },
+    // 树权限（父子联动）
+    handleCheckedTreeConnect(value, type) {
+      if (type == 'menu') {
+        this.menuCheckStrictly = value
+      }
+    },
+    /** 提交按钮（菜单权限） */
+    submitAuthMenu() {
+      const postId = this.form.postId
+      this.form.menuIds = this.getMenuAllCheckedKeys()
+      console.log('提交岗位权限分配:', this.form)
+      updatePostMenu(this.form).then(response => {
+        console.log('权限分配成功:', response)
+        this.$modal.msgSuccess("分配成功")
+        this.openMenu = false
+      }).catch(error => {
+        console.error('权限分配失败:', error)
+        this.$modal.msgError("分配失败")
+      })
+    },
+    /** 取消按钮（菜单权限） */
+    cancelAuthMenu() {
+      this.openMenu = false
+      this.reset()
+    },
+    // 获取所有选中节点
+    getMenuAllCheckedKeys() {
+      // 目前被选中的菜单节点
+      let checkedKeys = this.$refs.menu.getCheckedKeys()
+      // 半选中的菜单节点
+      let halfCheckedKeys = this.$refs.menu.getHalfCheckedKeys()
+      console.log('选中的菜单节点:', checkedKeys)
+      console.log('半选中的菜单节点:', halfCheckedKeys)
+      checkedKeys.unshift.apply(checkedKeys, halfCheckedKeys)
+      console.log('最终选中的菜单节点:', checkedKeys)
+      return checkedKeys
     }
   }
 }
 </script>
+
+<style scoped>
+.tree-border {
+  margin-top: 5px;
+  border: 1px solid #e5e6e7;
+  background: #ffffff none;
+  border-radius: 4px;
+  width: 100%;
+}
+</style>

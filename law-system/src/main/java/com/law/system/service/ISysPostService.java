@@ -1,6 +1,7 @@
 package com.law.system.service;
 
 import java.util.List;
+import java.util.Set;
 import com.law.system.domain.SysPost;
 
 /**
@@ -96,4 +97,37 @@ public interface ISysPostService
      * @return 结果
      */
     public int updatePost(SysPost post);
+
+    /**
+     * 根据用户ID查询岗位权限
+     * 
+     * @param userId 用户ID
+     * @return 权限列表
+     */
+    public Set<String> selectMenuPermsByUserId(Long userId);
+
+    /**
+     * 根据岗位ID查询菜单权限
+     * 
+     * @param postId 岗位ID
+     * @return 权限列表
+     */
+    public Set<String> selectMenuPermsByPostId(Long postId);
+
+    /**
+     * 根据岗位ID查询菜单树信息
+     * 
+     * @param postId 岗位ID
+     * @return 选中菜单列表
+     */
+    public List<Long> selectMenuListByPostId(Long postId);
+
+    /**
+     * 分配岗位菜单权限
+     * 
+     * @param postId 岗位ID
+     * @param menuIds 菜单ID列表
+     * @return 结果
+     */
+    public int insertPostMenu(Long postId, Long[] menuIds);
 }

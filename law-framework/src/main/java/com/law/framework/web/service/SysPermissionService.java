@@ -12,6 +12,7 @@ import com.law.common.core.domain.entity.SysUser;
 import com.law.common.utils.StringUtils;
 import com.law.system.service.ISysMenuService;
 import com.law.system.service.ISysRoleService;
+import com.law.system.service.ISysPostService;
 
 /**
  * 用户权限处理
@@ -26,6 +27,9 @@ public class SysPermissionService
 
     @Autowired
     private ISysMenuService menuService;
+
+    @Autowired
+    private ISysPostService postService;
 
     /**
      * 获取角色数据权限
@@ -64,6 +68,7 @@ public class SysPermissionService
         }
         else
         {
+            // 1. 获取角色权限
             List<SysRole> roles = user.getRoles();
             if (!CollectionUtils.isEmpty(roles))
             {
@@ -78,10 +83,10 @@ public class SysPermissionService
                     }
                 }
             }
-            else
-            {
-                perms.addAll(menuService.selectMenuPermsByUserId(user.getUserId()));
-            }
+            
+            // 2. 获取岗位权限（与角色权限并集）
+            Set<String> postPerms = postService.selectMenuPermsByUserId(user.getUserId());
+            perms.addAll(postPerms);
         }
         return perms;
     }

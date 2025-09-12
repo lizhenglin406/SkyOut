@@ -63,6 +63,14 @@ public interface ISysMenuService
     public List<Long> selectMenuListByRoleId(Long roleId);
 
     /**
+     * 根据岗位ID查询菜单树信息
+     * 
+     * @param postId 岗位ID
+     * @return 选中菜单列表
+     */
+    public List<Long> selectMenuListByPostId(Long postId);
+
+    /**
      * 构建前端路由所需要的菜单
      * 
      * @param menus 菜单列表

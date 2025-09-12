@@ -20,7 +20,9 @@ import com.law.common.core.page.TableDataInfo;
 import com.law.common.enums.BusinessType;
 import com.law.common.utils.poi.ExcelUtil;
 import com.law.system.domain.SysPost;
+import com.law.common.core.domain.entity.SysMenu;
 import com.law.system.service.ISysPostService;
+import com.law.system.service.ISysMenuService;
 
 /**
  * 岗位信息操作处理
@@ -33,6 +35,9 @@ public class SysPostController extends BaseController
 {
     @Autowired
     private ISysPostService postService;
+
+    @Autowired
+    private ISysMenuService menuService;
 
     /**
      * 获取岗位列表
@@ -125,5 +130,29 @@ public class SysPostController extends BaseController
     {
         List<SysPost> posts = postService.selectPostAll();
         return success(posts);
+    }
+
+    /**
+     * 查询岗位菜单权限
+     */
+    @PreAuthorize("@ss.hasPermi('system:post:query')")
+    @GetMapping(value = "/authMenu/{postId}")
+    public AjaxResult authMenu(@PathVariable("postId") Long postId)
+    {
+        AjaxResult ajax = AjaxResult.success();
+        ajax.put("checkedKeys", menuService.selectMenuListByPostId(postId));
+        ajax.put("menus", menuService.buildMenuTreeSelect(menuService.selectMenuList(new SysMenu(), getUserId())));
+        return ajax;
+    }
+
+    /**
+     * 保存岗位菜单权限
+     */
+    @PreAuthorize("@ss.hasPermi('system:post:edit')")
+    @Log(title = "岗位管理", businessType = BusinessType.UPDATE)
+    @PutMapping("/authMenu")
+    public AjaxResult insertAuthMenu(@RequestBody SysPost post)
+    {
+        return toAjax(postService.insertPostMenu(post.getPostId(), post.getMenuIds()));
     }
 }

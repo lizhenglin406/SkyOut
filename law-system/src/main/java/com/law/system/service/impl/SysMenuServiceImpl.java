@@ -18,9 +18,11 @@ import com.law.common.core.domain.entity.SysRole;
 import com.law.common.core.domain.entity.SysUser;
 import com.law.common.utils.SecurityUtils;
 import com.law.common.utils.StringUtils;
+import com.law.system.domain.SysPost;
 import com.law.system.domain.vo.MetaVo;
 import com.law.system.domain.vo.RouterVo;
 import com.law.system.mapper.SysMenuMapper;
+import com.law.system.mapper.SysPostMapper;
 import com.law.system.mapper.SysRoleMapper;
 import com.law.system.mapper.SysRoleMenuMapper;
 import com.law.system.service.ISysMenuService;
@@ -37,6 +39,9 @@ public class SysMenuServiceImpl implements ISysMenuService
 
     @Autowired
     private SysMenuMapper menuMapper;
+
+    @Autowired
+    private SysPostMapper postMapper;
 
     @Autowired
     private SysRoleMapper roleMapper;
@@ -153,6 +158,19 @@ public class SysMenuServiceImpl implements ISysMenuService
     {
         SysRole role = roleMapper.selectRoleById(roleId);
         return menuMapper.selectMenuListByRoleId(roleId, role.isMenuCheckStrictly());
+    }
+
+    /**
+     * 根据岗位ID查询菜单树信息
+     * 
+     * @param postId 岗位ID
+     * @return 选中菜单列表
+     */
+    @Override
+    public List<Long> selectMenuListByPostId(Long postId)
+    {
+        SysPost post = postMapper.selectPostById(postId);
+        return menuMapper.selectMenuListByPostId(postId, post.isMenuCheckStrictly());
     }
 
     /**
